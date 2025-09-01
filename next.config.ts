@@ -10,10 +10,8 @@ const nextConfig: NextConfig = {
     // 构建时忽略ESLint错误
     ignoreDuringBuilds: true,
   },
-  // Remove custom webpack config for Vercel deployment
-  experimental: {
-    serverComponentsExternalPackages: ['@prisma/client']
-  }
+  // Server external packages for Prisma
+  serverExternalPackages: ["@prisma/client"],
 };
 
 export default nextConfig;

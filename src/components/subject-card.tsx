@@ -80,11 +80,11 @@ export function SubjectCard({ subject, onDelete, onClick }: SubjectCardProps) {
         className="group cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-l-4"
         style={{ borderLeftColor: subject.color }}
       >
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-3 p-4 sm:p-6">
           <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center text-lg font-semibold"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-sm sm:text-lg font-semibold"
                 style={{
                   backgroundColor: `${subject.color}20`,
                   color: subject.color,
@@ -92,12 +92,12 @@ export function SubjectCard({ subject, onDelete, onClick }: SubjectCardProps) {
               >
                 {subject.icon || "📚"}
               </div>
-              <div className="flex-1">
-                <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
                   {subject.name}
                 </CardTitle>
                 {subject.description && (
-                  <CardDescription className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                  <CardDescription className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">
                     {subject.description}
                   </CardDescription>
                 )}
@@ -107,27 +107,29 @@ export function SubjectCard({ subject, onDelete, onClick }: SubjectCardProps) {
           </div>
         </CardHeader>
 
-        <CardContent className="pt-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-500">
+        <CardContent className="pt-0 px-4 sm:px-6 pb-4 sm:pb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-500 dark:text-slate-500">
               <div className="flex items-center gap-1">
-                <BookOpen className="h-4 w-4" />
+                <BookOpen className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span>{subject.notebookCount} notebooks</span>
               </div>
               <div className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
+                <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span>Created {formatDate(subject.createdAt)}</span>
               </div>
             </div>
 
-            <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <Button
                 variant="ghost"
                 size="sm"
                 style={{ color: subject.color }}
                 onClick={onClick}
+                className="text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
               >
-                View
+                <span className="hidden sm:inline">View</span>
+                <span className="sm:hidden">Open</span>
               </Button>
               <AlertDialog
                 open={isAlertDialogOpen}
@@ -139,10 +141,10 @@ export function SubjectCard({ subject, onDelete, onClick }: SubjectCardProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-red-500 hover:text-red-600"
+                    className="text-red-500 hover:text-red-600 h-8 sm:h-9 w-8 sm:w-9 p-0"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent onClick={(e) => e.stopPropagation()}>

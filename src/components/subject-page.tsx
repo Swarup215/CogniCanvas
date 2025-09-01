@@ -132,22 +132,23 @@ export function SubjectPage({
   // Show Notebooks view
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6 sm:mb-8">
           <Button
             variant="ghost"
             size="sm"
             onClick={onBack}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 text-sm w-fit"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Dashboard
+            <span className="hidden sm:inline">Back to Dashboard</span>
+            <span className="sm:hidden">Back</span>
           </Button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div
-              className="w-12 h-12 rounded-lg flex items-center justify-center text-xl font-semibold"
+              className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-sm sm:text-xl font-semibold"
               style={{
                 backgroundColor: `${subject.color}20`,
                 color: subject.color,
@@ -156,11 +157,11 @@ export function SubjectPage({
               {subject.icon || "📚"}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
                 {subject.name}
               </h1>
               {subject.description && (
-                <p className="text-slate-600 dark:text-slate-400 text-sm">
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
                   {subject.description}
                 </p>
               )}
@@ -170,26 +171,28 @@ export function SubjectPage({
 
         {/* Navigation Tabs */}
         <div className="flex items-center gap-4 mb-6">
-          <div className="flex items-center gap-2 bg-white dark:bg-slate-800 p-1 rounded-lg">
+          <div className="flex items-center gap-1 sm:gap-2 bg-white dark:bg-slate-800 p-1 rounded-lg w-full sm:w-auto">
             <Button
               variant={currentView === "notebooks" ? "default" : "ghost"}
               size="sm"
               onClick={() => setCurrentView("notebooks")}
-              className="flex items-center gap-2"
+              className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-none"
             >
-              <BookOpen className="h-4 w-4" />
-              Notebooks
+              <BookOpen className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Notebooks</span>
+              <span className="sm:hidden">Books</span>
             </Button>
             <Button
               variant={currentView === "important" ? "default" : "ghost"}
               size="sm"
               onClick={() => setCurrentView("important")}
-              className="flex items-center gap-2"
+              className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-none"
             >
-              <Star className="h-4 w-4" />
-              Important
+              <Star className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Important</span>
+              <span className="sm:hidden">Star</span>
               {importantSnippets.length > 0 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-xs ml-1">
                   {importantSnippets.length}
                 </Badge>
               )}
@@ -197,46 +200,48 @@ export function SubjectPage({
           </div>
         </div>
 
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+            <h2 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-slate-100">
               Notebooks
             </h2>
-            <Badge variant="secondary" className="text-sm">
+            <Badge variant="secondary" className="text-xs sm:text-sm">
               {notebooks.length} notebooks
             </Badge>
           </div>
 
           <Button
             onClick={() => setIsAddNotebookOpen(true)}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-sm sm:text-base w-full sm:w-auto"
           >
-            <Plus className="h-4 w-4 mr-2" />
-            Create Notebook
+            <Plus className="h-4 w-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Create Notebook</span>
+            <span className="sm:hidden">Create Notebook</span>
           </Button>
         </div>
 
         {notebooks.length === 0 ? (
           <Card className="border-dashed border-2 border-slate-300 dark:border-slate-600">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <BookOpen className="h-12 w-12 text-slate-400 mb-4" />
-              <h3 className="text-lg font-medium text-slate-600 dark:text-slate-400 mb-2">
+            <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12 px-4">
+              <BookOpen className="h-8 w-8 sm:h-12 sm:w-12 text-slate-400 mb-3 sm:mb-4" />
+              <h3 className="text-base sm:text-lg font-medium text-slate-600 dark:text-slate-400 mb-2 text-center">
                 No notebooks yet
               </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-500 text-center mb-4">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-500 text-center mb-4 max-w-sm">
                 Create your first notebook to start taking notes
               </p>
               <Button
                 onClick={() => setIsAddNotebookOpen(true)}
                 variant="outline"
+                className="text-sm"
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-4 w-4 mr-1 sm:mr-2" />
                 Create Notebook
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
             {notebooks.map((notebook) => (
               <div key={notebook.id} onClick={() => onNotebookClick(notebook)}>
                 <NotebookCard

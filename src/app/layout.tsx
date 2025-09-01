@@ -14,22 +14,23 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Z.ai Code Scaffold - AI-Powered Development",
-  description: "Modern Next.js scaffold optimized for AI-powered development with Z.ai. Built with TypeScript, Tailwind CSS, and shadcn/ui.",
-  keywords: ["Z.ai", "Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui", "AI development", "React"],
-  authors: [{ name: "Z.ai Team" }],
+  title: "CogniCanvas - Your Digital Knowledge Canvas",
+  description: "A modern note-taking app for organizing your knowledge with subjects, notebooks, and important snippets.",
+  keywords: ["note-taking", "knowledge management", "study notes", "digital canvas", "learning"],
+  authors: [{ name: "CogniCanvas Team" }],
   openGraph: {
-    title: "Z.ai Code Scaffold",
-    description: "AI-powered development with modern React stack",
-    url: "https://chat.z.ai",
-    siteName: "Z.ai",
+    title: "CogniCanvas",
+    description: "Your digital knowledge canvas",
+    url: "https://cognicanvas.app",
+    siteName: "CogniCanvas",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Z.ai Code Scaffold",
-    description: "AI-powered development with modern React stack",
+    title: "CogniCanvas",
+    description: "Your digital knowledge canvas",
   },
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
 };
 
 export default function RootLayout({

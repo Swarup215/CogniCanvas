@@ -250,38 +250,39 @@ export default function Home() {
             <a href="#main-content" className="skip-link">
               Skip to main content
             </a>
-            <div className="container mx-auto px-4 py-8">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 animate-fade-in">
+            <div className="container mx-auto px-4 py-4 sm:py-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8 animate-fade-in">
                 <div>
-                  <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 responsive-heading">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 responsive-heading">
                     CogniCanvas
                   </h1>
-                  <p className="text-slate-600 dark:text-slate-400 mt-1 responsive-text">
+                  <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-1 responsive-text">
                     Your digital knowledge canvas
                   </p>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
                   <Button
                     onClick={() => setIsAddSubjectOpen(true)}
-                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 focus-ring"
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 focus-ring text-sm sm:text-base flex-1 sm:flex-none"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Subject
+                    <Plus className="h-4 w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Add Subject</span>
+                    <span className="sm:hidden">Add</span>
                   </Button>
                 </div>
               </div>
 
               <div
                 id="main-content"
-                className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-slide-up"
+                className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8 animate-slide-up"
               >
                 <div className="lg:col-span-2">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100 responsive-heading">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                    <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-slate-100 responsive-heading">
                       Your Subjects
                     </h2>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-sm">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="secondary" className="text-xs sm:text-sm">
                         {subjects.length} subjects
                       </Badge>
                       {subjects.length > 0 && (
@@ -335,7 +336,7 @@ export default function Home() {
                       </CardContent>
                     </Card>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       {subjects.map((subject) => (
                         <SubjectCard
                           key={subject.id}
@@ -349,13 +350,13 @@ export default function Home() {
                 </div>
 
                 <div className="lg:col-span-1">
-                  <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6 animate-slide-up">
+                  <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 sm:p-6 animate-slide-up">
                     <div className="flex items-center gap-2 mb-4">
-                      <Star className="h-5 w-5 text-yellow-500" />
-                      <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                      <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />
+                      <h3 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100">
                         Important Snippets
                       </h3>
-                      <Badge variant="secondary" className="text-sm">
+                      <Badge variant="secondary" className="text-xs sm:text-sm">
                         {importantSnippets.length}
                       </Badge>
                     </div>

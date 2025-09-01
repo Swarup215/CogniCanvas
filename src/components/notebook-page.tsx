@@ -146,22 +146,23 @@ export function NotebookPage({ notebook, subject, onBack }: NotebookPageProps) {
   // Otherwise, show the notebook view
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6 sm:mb-8">
           <Button
             variant="ghost"
             size="sm"
             onClick={onBack}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 text-sm w-fit"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to {subject.name}
+            <span className="hidden sm:inline">Back to {subject.name}</span>
+            <span className="sm:hidden">Back</span>
           </Button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div
-              className="w-12 h-12 rounded-lg flex items-center justify-center text-xl font-semibold"
+              className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-sm sm:text-xl font-semibold"
               style={{
                 backgroundColor: `${subject.color}20`,
                 color: subject.color,
@@ -170,11 +171,11 @@ export function NotebookPage({ notebook, subject, onBack }: NotebookPageProps) {
               {subject.icon || "📚"}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
                 {notebook.title}
               </h1>
               {notebook.description && (
-                <p className="text-slate-600 dark:text-slate-400 text-sm">
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
                   {notebook.description}
                 </p>
               )}
@@ -182,91 +183,98 @@ export function NotebookPage({ notebook, subject, onBack }: NotebookPageProps) {
           </div>
         </div>
 
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+            <h2 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-slate-100">
               Notes
             </h2>
-            <Badge variant="secondary" className="text-sm">
-              {notes.length} notes
-            </Badge>
-            {totalImportantSnippets > 0 && (
-              <Badge variant="warning" className="text-sm">
-                <Star className="h-3 w-3 mr-1" />
-                {totalImportantSnippets} important
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="secondary" className="text-xs sm:text-sm">
+                {notes.length} notes
               </Badge>
-            )}
+              {totalImportantSnippets > 0 && (
+                <Badge variant="warning" className="text-xs sm:text-sm">
+                  <Star className="h-3 w-3 mr-1" />
+                  {totalImportantSnippets} important
+                </Badge>
+              )}
+            </div>
           </div>
 
           <Button
             onClick={() => setIsAddNoteOpen(true)}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-sm sm:text-base w-full sm:w-auto"
           >
-            <Plus className="h-4 w-4 mr-2" />
-            Create Note
+            <Plus className="h-4 w-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Create Note</span>
+            <span className="sm:hidden">Create Note</span>
           </Button>
         </div>
 
         {notes.length === 0 ? (
           <Card className="border-dashed border-2 border-slate-300 dark:border-slate-600">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <FileText className="h-12 w-12 text-slate-400 mb-4" />
-              <h3 className="text-lg font-medium text-slate-600 dark:text-slate-400 mb-2">
+            <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12 px-4">
+              <FileText className="h-8 w-8 sm:h-12 sm:w-12 text-slate-400 mb-3 sm:mb-4" />
+              <h3 className="text-base sm:text-lg font-medium text-slate-600 dark:text-slate-400 mb-2 text-center">
                 No notes yet
               </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-500 text-center mb-4">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-500 text-center mb-4 max-w-sm">
                 Create your first note to start documenting your knowledge
               </p>
-              <Button onClick={() => setIsAddNoteOpen(true)} variant="outline">
-                <Plus className="h-4 w-4 mr-2" />
+              <Button
+                onClick={() => setIsAddNoteOpen(true)}
+                variant="outline"
+                className="text-sm"
+              >
+                <Plus className="h-4 w-4 mr-1 sm:mr-2" />
                 Create Note
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
             {notes.map((note) => (
               <Card
                 key={note.id}
                 className="group cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 overflow-hidden"
                 onClick={() => handleNoteClick(note)}
               >
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-3 p-4 sm:p-6">
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
                         {note.title}
                       </CardTitle>
-                      <CardDescription className="text-sm text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">
+                      <CardDescription className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">
                         {note.content}
                       </CardDescription>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-red-500 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="text-red-500 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity h-8 sm:h-9 w-8 sm:w-9 p-0"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteNote(note.id);
                         }}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                     </div>
                   </div>
                 </CardHeader>
 
-                <CardContent className="pt-0">
+                <CardContent className="pt-0 px-4 sm:px-6 pb-4 sm:pb-6">
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-500">
-                      <div className="flex items-center gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs sm:text-sm text-slate-500 dark:text-slate-500">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                         <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4" />
+                          <Star className="h-3 w-3 sm:h-4 sm:w-4" />
                           <span>{note.importantSnippetCount} important</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
+                          <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
                           <span>
                             Created{" "}
                             {new Date(note.createdAt).toLocaleDateString()}
@@ -275,7 +283,7 @@ export function NotebookPage({ notebook, subject, onBack }: NotebookPageProps) {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <div className="flex items-center gap-1 text-xs text-slate-500">
                         <Clock className="h-3 w-3" />
                         <span>
@@ -287,10 +295,11 @@ export function NotebookPage({ notebook, subject, onBack }: NotebookPageProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
                         style={{ color: subject.color }}
                       >
-                        Open
+                        <span className="hidden sm:inline">Open</span>
+                        <span className="sm:hidden">View</span>
                       </Button>
                     </div>
                   </div>

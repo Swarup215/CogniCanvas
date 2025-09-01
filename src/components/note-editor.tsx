@@ -174,6 +174,19 @@ export function NoteEditor({
     }
   }, [brushColor, brushSize]);
 
+  // Effect to handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Exit fullscreen with Escape key
+      if (e.key === "Escape" && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isFullscreen]);
+
   // --- CORE EDITOR LOGIC ---
   /**
    * Updates the React state with the current HTML from the editor.
@@ -190,20 +203,25 @@ export function NoteEditor({
    * It correctly creates new paragraphs or list items and ensures the cursor moves.
    */
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       const selection = window.getSelection();
       if (!selection || selection.rangeCount === 0) return;
       const range = selection.getRangeAt(0);
       const parentNode = range.commonAncestorContainer.parentElement;
-      
+
       // Check if we are inside a list item
-      const listItem = parentNode?.closest('li');
-      if (listItem && listItem.textContent?.trim() === '' && listItem.parentElement && listItem.parentElement.children.length > 1) {
+      const listItem = parentNode?.closest("li");
+      if (
+        listItem &&
+        listItem.textContent?.trim() === "" &&
+        listItem.parentElement &&
+        listItem.parentElement.children.length > 1
+      ) {
         // If Enter is pressed on an empty list item, create a paragraph below the list.
         const list = listItem.parentElement;
-        const newPara = document.createElement('p');
-        newPara.innerHTML = '<br>'; // Use <br> to ensure it's rendered with height
+        const newPara = document.createElement("p");
+        newPara.innerHTML = "<br>"; // Use <br> to ensure it's rendered with height
         list.parentElement?.insertBefore(newPara, list.nextSibling);
         listItem.remove();
         // Move cursor to the new paragraph
@@ -216,7 +234,7 @@ export function NoteEditor({
         // is smart enough to do the right thing:
         // - Creates a new <p> if in a paragraph.
         // - Creates a new <li> if in a list item.
-        document.execCommand('insertParagraph');
+        document.execCommand("insertParagraph");
       }
       // Sync the DOM changes back to our React state
       updateContentFromDOM();
@@ -238,46 +256,49 @@ export function NoteEditor({
    */
   const insertHtmlAtCursor = (html: string) => {
     if (!editorRef.current) return;
-    
+
     // Focus the editor first
     editorRef.current.focus();
-    
+
     // Try using execCommand first (most reliable)
     try {
-      const success = document.execCommand('insertHTML', false, html);
+      const success = document.execCommand("insertHTML", false, html);
       if (success) {
         updateContentFromDOM();
         return;
       }
     } catch (e) {
-      console.warn('execCommand insertHTML failed, using fallback', e);
+      console.warn("execCommand insertHTML failed, using fallback", e);
     }
-    
+
     // Fallback: manual insertion
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
       range.deleteContents();
-      
+
       // Create a document fragment with the HTML
       const fragment = range.createContextualFragment(html);
-      
+
       // Insert the fragment
       range.insertNode(fragment);
-      
+
       // Move cursor after the inserted content
       range.collapse(false);
       selection.removeAllRanges();
       selection.addRange(range);
     } else {
       // If no selection, append to the editor content
-      if (editorRef.current.innerHTML.trim() === '' || editorRef.current.innerHTML === '<br>') {
+      if (
+        editorRef.current.innerHTML.trim() === "" ||
+        editorRef.current.innerHTML === "<br>"
+      ) {
         editorRef.current.innerHTML = html;
       } else {
         editorRef.current.innerHTML += html;
       }
     }
-    
+
     updateContentFromDOM();
   };
 
@@ -286,10 +307,10 @@ export function NoteEditor({
    */
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const text = e.clipboardData.getData('text/plain');
+    const text = e.clipboardData.getData("text/plain");
     if (text) {
-      const sanitizedText = text.replace(/\n/g, '<br>');
-      document.execCommand('insertHTML', false, sanitizedText);
+      const sanitizedText = text.replace(/\n/g, "<br>");
+      document.execCommand("insertHTML", false, sanitizedText);
       updateContentFromDOM();
     }
   };
@@ -313,44 +334,65 @@ export function NoteEditor({
 
   const insertCodeBlock = () => {
     if (!codeBlock.code.trim()) return;
-    
+
     // Ensure editor is focused
     if (editorRef.current) {
       editorRef.current.focus();
     }
-    
+
     const codeBlockHtml = `
       <div class="code-block my-4 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 relative group" contenteditable="false">
         <button class="delete-btn absolute top-2 right-2 p-1 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity" title="Delete code block">
           <X class="h-4 w-4" />
         </button>
-        ${codeBlock.title ? `<h4 class="text-sm font-medium mb-2 text-slate-700 dark:text-slate-300 pr-8">${escapeHtml(codeBlock.title)}</h4>` : ""}
-        ${codeBlock.language ? `<div class="text-xs text-slate-500 mb-2 font-mono">${escapeHtml(codeBlock.language)}</div>` : ""}
-        <pre class="text-sm font-mono text-slate-800 dark:text-slate-200 whitespace-pre-wrap overflow-x-auto"><code>${escapeHtml(codeBlock.code)}</code></pre>
+        ${
+          codeBlock.title
+            ? `<h4 class="text-sm font-medium mb-2 text-slate-700 dark:text-slate-300 pr-8">${escapeHtml(
+                codeBlock.title
+              )}</h4>`
+            : ""
+        }
+        ${
+          codeBlock.language
+            ? `<div class="text-xs text-slate-500 mb-2 font-mono">${escapeHtml(
+                codeBlock.language
+              )}</div>`
+            : ""
+        }
+        <pre class="text-sm font-mono text-slate-800 dark:text-slate-200 whitespace-pre-wrap overflow-x-auto"><code>${escapeHtml(
+          codeBlock.code
+        )}</code></pre>
       </div>
       <p><br></p>
     `;
-    
+
     // Use a more direct approach to insert the HTML
     setTimeout(() => {
       try {
         // Try to insert using execCommand
-        const success = document.execCommand('insertHTML', false, codeBlockHtml);
-        
+        const success = document.execCommand(
+          "insertHTML",
+          false,
+          codeBlockHtml
+        );
+
         if (!success) {
           // Fallback: append to editor content
           if (editorRef.current) {
-            if (editorRef.current.innerHTML.trim() === '' || editorRef.current.innerHTML === '<br>') {
+            if (
+              editorRef.current.innerHTML.trim() === "" ||
+              editorRef.current.innerHTML === "<br>"
+            ) {
               editorRef.current.innerHTML = codeBlockHtml;
             } else {
               editorRef.current.innerHTML += codeBlockHtml;
             }
           }
         }
-        
+
         // Update content state
         updateContentFromDOM();
-        
+
         // Reset the form and close dialog
         setIsCodeDialogOpen(false);
         setCodeBlock({ language: "", code: "", title: "" });
@@ -363,7 +405,7 @@ export function NoteEditor({
 
   const insertQuote = () => {
     const quoteHtml = `<blockquote class="border-l-4 border-slate-300 dark:border-slate-600 pl-4 py-2 my-4 italic relative group">Your quote here...<button class="delete-btn absolute top-2 right-2 p-1 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity" title="Remove quote" contenteditable="false"><X class="h-4 w-4" /></button></blockquote><p><br></p>`;
-    formatText('insertHTML', quoteHtml);
+    formatText("insertHTML", quoteHtml);
   };
 
   const handleImageInsert = () => {
@@ -746,13 +788,18 @@ export function NoteEditor({
     drawingContextRef.current?.stroke();
   };
 
-  const stopDrawing = () => { 
-    isDrawingRef.current = false; 
+  const stopDrawing = () => {
+    isDrawingRef.current = false;
   };
 
   const clearCanvas = () => {
     if (canvasRef.current && drawingContextRef.current) {
-      drawingContextRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      drawingContextRef.current.clearRect(
+        0,
+        0,
+        canvasRef.current.width,
+        canvasRef.current.height
+      );
     }
   };
 
@@ -836,12 +883,18 @@ export function NoteEditor({
               Background
             </Button>
             <Button
-              variant="outline"
+              variant={isFullscreen ? "default" : "outline"}
               size="sm"
               onClick={() => setIsFullscreen(!isFullscreen)}
-              className="flex items-center gap-2"
+              className={`flex items-center gap-2 ${
+                isFullscreen ? "bg-blue-500 hover:bg-blue-600 text-white" : ""
+              }`}
             >
-              <Maximize className="h-4 w-4" />
+              {isFullscreen ? (
+                <ArrowLeft className="h-4 w-4" />
+              ) : (
+                <Maximize className="h-4 w-4" />
+              )}
               {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
             </Button>
             <Button
@@ -899,6 +952,20 @@ export function NoteEditor({
               : ""
           }`}
         >
+          {/* Floating Exit Fullscreen Button */}
+          {isFullscreen && (
+            <div className="fixed top-4 right-4 z-60">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsFullscreen(false)}
+                className="bg-white dark:bg-slate-800 shadow-lg border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Exit Fullscreen
+              </Button>
+            </div>
+          )}
           {/* Title Input */}
           <div className="space-y-2">
             <input
