@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String             @id @default(cuid())
+  email             String             @unique
+  name              String?
+  avatar            String?
+  streak            Int                @default(0)
+  lastActive        DateTime           @default(now())
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  importantSnippets ImportantSnippet[]
+  notes             Note[]
+  notebooks         Notebook[]
+  revisionSchedules RevisionSchedule[]
+  subjects          Subject[]
+  userStreaks       UserStreak[]
+}
+
+model Subject {
+  id                String             @id @default(cuid())
+  name              String
+  description       String?
+  color             String             @default("#3B82F6")
+  icon              String?
+  userId            String
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  importantSnippets ImportantSnippet[]
+  notebooks         Notebook[]
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notebook {
+  id                String             @id @default(cuid())
+  title             String
+  description       String?
+  coverImage        String?
+  theme             String             @default("default")
+  subjectId         String
+  userId            String
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  importantSnippets ImportantSnippet[]
+  notes             Note[]
+  subject           Subject            @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  revisionSchedules RevisionSchedule[]
+}
+
+model Note {
+  id                    String             @id @default(cuid())
+  title                 String
+  content               String
+  background            String             @default("default")
+  notebookId            String
+  userId                String
+  importantSnippetCount Int                @default(0)
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  importantSnippets     ImportantSnippet[]
+  notebook              Notebook           @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  revisionSchedules     RevisionSchedule[]
+}
+
+model ImportantSnippet {
+  id         String   @id @default(cuid())
+  content    String
+  noteId     String
+  notebookId String
+  subjectId  String
+  userId     String
+  createdAt  DateTime @default(now())
+  subject    Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  notebook   Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  note       Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RevisionSchedule {
+  id          String   @id @default(cuid())
+  scheduledAt DateTime
+  completed   Boolean  @default(false)
+  noteId      String
+  notebookId  String
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  notebook    Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  note        Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserStreak {
+  id         String   @id @default(cuid())
+  streak     Int      @default(0)
+  lastActive DateTime
+  userId     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
