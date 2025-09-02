@@ -63,6 +63,28 @@ export function NotebookPage({ notebook, subject, onBack }: NotebookPageProps) {
   const [isAddNoteOpen, setIsAddNoteOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
 
+  // Create a clean, human-readable preview from rich HTML content
+  const getNotePreview = (html: string): string => {
+    if (!html) return "Empty note";
+    // Decode entities and strip tags using a temporary element
+    const temp =
+      typeof window !== "undefined" ? document.createElement("div") : null;
+    let text = html;
+    if (temp) {
+      temp.innerHTML = html;
+      text = temp.textContent || temp.innerText || "";
+    } else {
+      text = html.replace(/<[^>]*>/g, " ");
+    }
+    // Normalize whitespace (including non-breaking spaces) and trim
+    text = text
+      .replace(/\u00A0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!text) return "Empty note";
+    return text.length > 140 ? text.slice(0, 140) + "…" : text;
+  };
+
   useEffect(() => {
     // Fetch notes for this notebook from Firebase
     const fetchNotes = async () => {
@@ -266,7 +288,7 @@ export function NotebookPage({ notebook, subject, onBack }: NotebookPageProps) {
                         {note.title}
                       </CardTitle>
                       <CardDescription className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">
-                        {note.content}
+                        {getNotePreview(note.content)}
                       </CardDescription>
                     </div>
                     <div className="flex items-center gap-1">
