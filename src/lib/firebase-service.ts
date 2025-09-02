@@ -307,3 +307,29 @@ export const deleteNote = async (noteId: string) => {
     throw error;
   }
 };
+
+// Update note (title, content, background)
+export const updateNote = async (
+  noteId: string,
+  data: Partial<Pick<FirebaseNote, "title" | "content" | "background">>
+) => {
+  try {
+    const noteRef = doc(db, "notes", noteId);
+    await updateDoc(noteRef, {
+      ...data,
+      updatedAt: serverTimestamp(),
+    });
+
+    const updated = await getDoc(noteRef);
+    const payload = updated.data();
+    return {
+      id: noteId,
+      ...payload,
+      createdAt: convertTimestamp(payload?.createdAt),
+      updatedAt: convertTimestamp(payload?.updatedAt),
+    } as any;
+  } catch (error) {
+    console.error("Error updating note:", error);
+    throw error;
+  }
+};

@@ -20,7 +20,12 @@ import {
 } from "lucide-react";
 import { NoteEditor } from "@/components/note-editor";
 import { AddNoteDialog } from "@/components/add-note-dialog";
-import { getNotes, createNote, deleteNote } from "@/lib/firebase-service";
+import {
+  getNotes,
+  createNote,
+  deleteNote,
+  updateNote,
+} from "@/lib/firebase-service";
 import { toast } from "sonner";
 
 interface Note {
@@ -105,19 +110,34 @@ export function NotebookPage({ notebook, subject, onBack }: NotebookPageProps) {
     setSelectedNote(note);
   };
 
-  const handleNoteSave = (updatedNote: Partial<Note>) => {
-    if (selectedNote) {
-      const updatedNotes = notes.map((note) =>
-        note.id === selectedNote.id
-          ? { ...note, ...updatedNote, updatedAt: new Date().toISOString() }
-          : note
+  const handleNoteSave = async (updatedNote: Partial<Note>) => {
+    if (!selectedNote) return;
+    try {
+      // Optimistic UI update
+      const optimisticUpdatedAt = new Date().toISOString();
+      setNotes((prev) =>
+        prev.map((n) =>
+          n.id === selectedNote.id
+            ? { ...n, ...updatedNote, updatedAt: optimisticUpdatedAt }
+            : n
+        )
       );
-      setNotes(updatedNotes);
-      setSelectedNote({
-        ...selectedNote,
-        ...updatedNote,
-        updatedAt: new Date().toISOString(),
+      setSelectedNote((prev) =>
+        prev
+          ? { ...prev, ...updatedNote, updatedAt: optimisticUpdatedAt }
+          : prev
+      );
+
+      // Persist to DB
+      await updateNote(selectedNote.id, {
+        title: updatedNote.title,
+        content: updatedNote.content,
+        background: updatedNote.background,
       });
+      toast.success("Note saved");
+    } catch (error) {
+      console.error("Error saving note:", error);
+      toast.error("Failed to save note");
     }
   };
 
@@ -253,7 +273,7 @@ export function NotebookPage({ notebook, subject, onBack }: NotebookPageProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-red-500 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity h-8 sm:h-9 w-8 sm:w-9 p-0"
+                        className="text-red-500 hover:text-red-600 h-8 sm:h-9 w-8 sm:w-9 p-0 sm:opacity-0 sm:group-hover:opacity-100"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteNote(note.id);

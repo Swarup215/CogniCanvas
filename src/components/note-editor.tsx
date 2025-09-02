@@ -146,8 +146,9 @@ export function NoteEditor({
   useEffect(() => {
     if (editorRef.current && editorRef.current.innerHTML !== content) {
       editorRef.current.innerHTML = content;
+      // Only re-attach listeners when DOM actually changed
+      addInteractiveElementListeners();
     }
-    addInteractiveElementListeners();
   }, [content]);
 
   // Effect to track unsaved changes
@@ -194,7 +195,10 @@ export function NoteEditor({
    */
   const updateContentFromDOM = () => {
     if (editorRef.current) {
-      setContent(editorRef.current.innerHTML);
+      const html = editorRef.current.innerHTML;
+      if (html !== content) {
+        setContent(html);
+      }
     }
   };
 
@@ -335,16 +339,10 @@ export function NoteEditor({
   const insertCodeBlock = () => {
     if (!codeBlock.code.trim()) return;
 
-    // Ensure editor is focused
-    if (editorRef.current) {
-      editorRef.current.focus();
-    }
-
+    // Build safe HTML (no JSX tags) and insert via Range for reliability
     const codeBlockHtml = `
       <div class="code-block my-4 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 relative group" contenteditable="false">
-        <button class="delete-btn absolute top-2 right-2 p-1 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity" title="Delete code block">
-          <X class="h-4 w-4" />
-        </button>
+        <button class="delete-btn absolute top-2 right-2 p-1 rounded-full bg-red-500 text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" title="Delete code block">×</button>
         ${
           codeBlock.title
             ? `<h4 class="text-sm font-medium mb-2 text-slate-700 dark:text-slate-300 pr-8">${escapeHtml(
@@ -366,46 +364,53 @@ export function NoteEditor({
       <p><br></p>
     `;
 
-    // Use a more direct approach to insert the HTML
-    setTimeout(() => {
-      try {
-        // Try to insert using execCommand
-        const success = document.execCommand(
-          "insertHTML",
-          false,
-          codeBlockHtml
-        );
+    const editor = editorRef.current;
+    if (!editor) return;
 
-        if (!success) {
-          // Fallback: append to editor content
-          if (editorRef.current) {
-            if (
-              editorRef.current.innerHTML.trim() === "" ||
-              editorRef.current.innerHTML === "<br>"
-            ) {
-              editorRef.current.innerHTML = codeBlockHtml;
-            } else {
-              editorRef.current.innerHTML += codeBlockHtml;
-            }
-          }
-        }
+    // Focus the editor and try to insert at the current selection inside it
+    editor.focus();
+    const selection = window.getSelection();
 
-        // Update content state
-        updateContentFromDOM();
-
-        // Reset the form and close dialog
-        setIsCodeDialogOpen(false);
-        setCodeBlock({ language: "", code: "", title: "" });
-      } catch (error) {
-        console.error("Error inserting code block:", error);
-        alert("Failed to insert code block. Please try again.");
+    try {
+      if (
+        selection &&
+        selection.rangeCount > 0 &&
+        editor.contains(selection.anchorNode)
+      ) {
+        const range = selection.getRangeAt(0);
+        const fragment = range.createContextualFragment(codeBlockHtml);
+        range.deleteContents();
+        range.insertNode(fragment);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      } else {
+        // Append to the end of the editor if no valid selection
+        const range = document.createRange();
+        range.selectNodeContents(editor);
+        range.collapse(false);
+        const fragment = range.createContextualFragment(codeBlockHtml);
+        range.insertNode(fragment);
       }
-    }, 0);
+
+      // Sync React state and close dialog
+      updateContentFromDOM();
+      setIsCodeDialogOpen(false);
+      setCodeBlock({ language: "", code: "", title: "" });
+
+      // Re-attach listeners for delete button
+      addInteractiveElementListeners();
+    } catch (error) {
+      console.error("Error inserting code block:", error);
+      alert("Failed to insert code block. Please try again.");
+    }
   };
 
   const insertQuote = () => {
-    const quoteHtml = `<blockquote class="border-l-4 border-slate-300 dark:border-slate-600 pl-4 py-2 my-4 italic relative group">Your quote here...<button class="delete-btn absolute top-2 right-2 p-1 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity" title="Remove quote" contenteditable="false"><X class="h-4 w-4" /></button></blockquote><p><br></p>`;
+    const quoteHtml = `<blockquote class=\"border-l-4 border-slate-300 dark:border-slate-600 pl-4 py-2 my-4 italic relative group\">Your quote here...<button class=\"delete-btn absolute top-2 right-2 p-1 rounded-full bg-red-500 text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity\" title=\"Remove quote\" contenteditable=\"false\">×</button></blockquote><p><br></p>`;
     formatText("insertHTML", quoteHtml);
+    // Ensure newly added controls are wired up
+    addInteractiveElementListeners();
   };
 
   const handleImageInsert = () => {
@@ -420,22 +425,17 @@ export function NoteEditor({
           const dataUrl = event.target?.result as string;
           const imgHtml = `
             <div class="image-container my-4 relative group" contenteditable="false">
-              <div class="image-controls absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button class="delete-image p-1 rounded-full bg-red-500 text-white" title="Delete image">
-                  <X class="h-4 w-4" />
-                </button>
-                <button class="resize-image p-1 rounded-full bg-blue-500 text-white" title="Resize image">
-                  <Move class="h-4 w-4" />
-                </button>
-                <button class="rotate-image p-1 rounded-full bg-green-500 text-white" title="Rotate image">
-                  <RotateCw class="h-4 w-4" />
-                </button>
+              <div class="image-controls absolute top-2 right-2 flex gap-1 opacity-100 transition-opacity z-20 pointer-events-auto">
+                <button class="delete-image p-1 rounded-full bg-red-500 text-white shadow" title="Delete image">×</button>
+                <button class="resize-image p-1 rounded-full bg-blue-500 text-white shadow" title="Resize image">↔</button>
+                <button class="rotate-image p-1 rounded-full bg-green-500 text-white shadow" title="Rotate image">⟳</button>
               </div>
-              <img src="${dataUrl}" alt="Inserted image" class="max-w-full h-auto rounded-lg my-4" />
+              <img src="${dataUrl}" alt="Inserted image" class="max-w-full h-auto rounded-lg my-4 relative z-0" />
             </div>
             <p><br></p>
           `;
           insertHtmlAtCursor(imgHtml);
+          addInteractiveElementListeners();
         };
         reader.readAsDataURL(file);
       }
@@ -561,10 +561,8 @@ export function NoteEditor({
         // For now, we'll show a placeholder
         const pdfHtml = `
           <div class="pdf-container my-4 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 relative group" contenteditable="false">
-            <div class="pdf-controls absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button class="delete-pdf p-1 rounded-full bg-red-500 text-white" title="Delete PDF">
-                <X class="h-4 w-4" />
-              </button>
+            <div class="pdf-controls absolute top-2 right-2 opacity-100 transition-opacity z-20 pointer-events-auto">
+              <button class="delete-pdf p-1 rounded-full bg-red-500 text-white shadow" title="Delete PDF">×</button>
             </div>
             <div class="flex items-center gap-2 mb-2">
               <FileText className="h-5 w-5 text-red-500" />
@@ -580,6 +578,7 @@ export function NoteEditor({
           <p><br></p>
         `;
         insertHtmlAtCursor(pdfHtml);
+        addInteractiveElementListeners();
       }
     };
 
@@ -595,7 +594,7 @@ export function NoteEditor({
       '[data-listener="true"]'
     );
     existingListeners.forEach((element) => {
-      element.removeEventListener("click", handleElementClick);
+      element.removeEventListener("click", handleElementClick as any);
     });
 
     // Add event listeners to code block delete buttons
@@ -604,14 +603,14 @@ export function NoteEditor({
     );
     codeBlocks.forEach((btn) => {
       btn.setAttribute("data-listener", "true");
-      btn.addEventListener("click", handleElementClick);
+      btn.addEventListener("click", handleElementClick as any);
     });
 
     // Add event listeners to quote delete buttons
     const quotes = editorRef.current.querySelectorAll("blockquote .delete-btn");
     quotes.forEach((btn) => {
       btn.setAttribute("data-listener", "true");
-      btn.addEventListener("click", handleElementClick);
+      btn.addEventListener("click", handleElementClick as any);
     });
 
     // Add event listeners to image controls
@@ -620,7 +619,7 @@ export function NoteEditor({
     );
     imageControls.forEach((btn) => {
       btn.setAttribute("data-listener", "true");
-      btn.addEventListener("click", handleElementClick);
+      btn.addEventListener("click", handleElementClick as any);
     });
 
     // Add event listeners to PDF controls
@@ -629,7 +628,7 @@ export function NoteEditor({
     );
     pdfControls.forEach((btn) => {
       btn.setAttribute("data-listener", "true");
-      btn.addEventListener("click", handleElementClick);
+      btn.addEventListener("click", handleElementClick as any);
     });
 
     // Add event listeners to drawing controls
@@ -638,7 +637,7 @@ export function NoteEditor({
     );
     drawingControls.forEach((btn) => {
       btn.setAttribute("data-listener", "true");
-      btn.addEventListener("click", handleElementClick);
+      btn.addEventListener("click", handleElementClick as any);
     });
   };
 
@@ -679,41 +678,70 @@ export function NoteEditor({
       }
     }
 
-    // Handle image resizing
+    // Handle image resizing (supports 400, 400x300, or 50%)
     if (target.closest(".image-controls .resize-image")) {
       const container = target.closest(".image-container");
-      const img = container?.querySelector("img");
+      const img = container?.querySelector("img") as HTMLImageElement | null;
 
       if (img) {
         const currentWidth = img.clientWidth;
-        const newWidth = prompt(
-          `Enter new width (current: ${currentWidth}px):`,
-          currentWidth.toString()
+        const currentHeight = img.clientHeight;
+        const input = prompt(
+          `Enter new size (examples: 400, 400x300, 50%)\nCurrent: ${currentWidth}x${currentHeight}`,
+          `${currentWidth}x${currentHeight}`
         );
 
-        if (newWidth && !isNaN(parseInt(newWidth))) {
-          img.style.width = `${newWidth}px`;
-          img.style.height = "auto";
+        if (input && input.trim()) {
+          const value = input.trim();
+          const percentMatch = value.match(/^(\d+)%$/);
+          const pairMatch = value.match(/^(\d+)x(\d+)$/i);
+          const singleMatch = value.match(/^(\d+)$/);
+
+          if (percentMatch) {
+            const p = parseInt(percentMatch[1]);
+            if (!isNaN(p)) {
+              img.style.width = `${p}%`;
+              img.style.height = "auto";
+            }
+          } else if (pairMatch) {
+            const w = parseInt(pairMatch[1]);
+            const h = parseInt(pairMatch[2]);
+            if (!isNaN(w) && !isNaN(h)) {
+              img.style.width = `${w}px`;
+              img.style.height = `${h}px`;
+            }
+          } else if (singleMatch) {
+            const w = parseInt(singleMatch[1]);
+            if (!isNaN(w)) {
+              img.style.width = `${w}px`;
+              img.style.height = "auto";
+            }
+          }
+
           updateContentFromDOM();
+          addInteractiveElementListeners();
         }
       }
     }
 
-    // Handle image rotation
+    // Handle image rotation (robustly parse existing degrees)
     if (target.closest(".image-controls .rotate-image")) {
       const container = target.closest(".image-container");
-      const img = container?.querySelector("img");
+      const img = container?.querySelector("img") as HTMLImageElement | null;
 
       if (img) {
         const currentTransform = img.style.transform || "";
-        const currentRotation = currentTransform.match(/rotate\((\d+)deg\)/);
+        const currentRotation = currentTransform.match(
+          /rotate\(([-\d.]+)deg\)/
+        );
         const currentDegrees = currentRotation
-          ? parseInt(currentRotation[1])
+          ? parseFloat(currentRotation[1])
           : 0;
         const newDegrees = (currentDegrees + 90) % 360;
 
         img.style.transform = `rotate(${newDegrees}deg)`;
         updateContentFromDOM();
+        addInteractiveElementListeners();
       }
     }
 
@@ -808,19 +836,16 @@ export function NoteEditor({
       const dataURL = canvasRef.current.toDataURL("image/png");
       const drawingHtml = `
         <div class="drawing-container my-4 relative group" contenteditable="false">
-          <div class="drawing-controls absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button class="delete-drawing p-1 rounded-full bg-red-500 text-white" title="Delete drawing">
-              <X class="h-4 w-4" />
-            </button>
-            <button class="resize-drawing p-1 rounded-full bg-blue-500 text-white" title="Resize drawing">
-              <Move class="h-4 w-4" />
-            </button>
+          <div class="drawing-controls absolute top-2 right-2 flex gap-1 opacity-100 transition-opacity z-20 pointer-events-auto">
+            <button class="delete-drawing p-1 rounded-full bg-red-500 text-white shadow" title="Delete drawing">×</button>
+            <button class="resize-drawing p-1 rounded-full bg-blue-500 text-white shadow" title="Resize drawing">↔</button>
           </div>
-          <img src="${dataURL}" alt="Drawing" class="max-w-full h-auto rounded-lg my-4 border border-slate-200" />
+          <img src="${dataURL}" alt="Drawing" class="max-w-full h-auto rounded-lg my-4 border border-slate-200 relative z-0" />
         </div>
         <p><br></p>
       `;
       insertHtmlAtCursor(drawingHtml);
+      addInteractiveElementListeners();
       setIsDrawingMode(false);
     }
   };
@@ -837,9 +862,12 @@ export function NoteEditor({
     <div
       className={`min-h-screen ${currentBackground.class} transition-colors duration-300`}
     >
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div
+          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4 sm:mb-6 sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur supports-[backdrop-filter]:bg-white/60 supports-[backdrop-filter]:backdrop-blur px-1 py-2 rounded"
+          style={{ paddingTop: "calc(env(safe-area-inset-top) + 8px)" }}
+        >
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -848,7 +876,8 @@ export function NoteEditor({
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to {notebook.title}
+              <span className="hidden sm:inline">Back to {notebook.title}</span>
+              <span className="sm:hidden">Back</span>
             </Button>
             <div className="flex items-center gap-2">
               <div
@@ -867,7 +896,7 @@ export function NoteEditor({
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
             {hasUnsavedChanges && (
               <Badge variant="secondary" className="text-xs">
                 Unsaved changes
@@ -880,7 +909,8 @@ export function NoteEditor({
               className="flex items-center gap-2"
             >
               <Palette className="h-4 w-4" />
-              Background
+              <span className="hidden sm:inline">Background</span>
+              <span className="sm:hidden">Bg</span>
             </Button>
             <Button
               variant={isFullscreen ? "default" : "outline"}
@@ -895,7 +925,12 @@ export function NoteEditor({
               ) : (
                 <Maximize className="h-4 w-4" />
               )}
-              {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+              <span className="hidden sm:inline">
+                {isFullscreen ? "Exit" : "Fullscreen"}
+              </span>
+              <span className="sm:hidden">
+                {isFullscreen ? "Exit" : "Full"}
+              </span>
             </Button>
             <Button
               onClick={handleSave}
@@ -972,7 +1007,7 @@ export function NoteEditor({
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full text-3xl font-bold text-slate-900 dark:text-slate-100 bg-transparent border-none outline-none placeholder-slate-400"
+              className="w-full text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 bg-transparent border-none outline-none placeholder-slate-400"
               placeholder="Note title..."
             />
             <div className="flex items-center gap-4 text-sm text-slate-500">
@@ -1003,7 +1038,7 @@ export function NoteEditor({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-10 w-10 sm:h-8 sm:w-8 p-0"
                     onClick={() => formatText("formatBlock", "<h1>")}
                     title="Heading 1"
                   >
@@ -1012,7 +1047,7 @@ export function NoteEditor({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-10 w-10 sm:h-8 sm:w-8 p-0"
                     onClick={() => formatText("formatBlock", "<h2>")}
                     title="Heading 2"
                   >
@@ -1021,7 +1056,7 @@ export function NoteEditor({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-10 w-10 sm:h-8 sm:w-8 p-0"
                     onClick={() => formatText("formatBlock", "<p>")}
                     title="Paragraph"
                   >
@@ -1031,7 +1066,7 @@ export function NoteEditor({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-10 w-10 sm:h-8 sm:w-8 p-0"
                     onClick={() => formatText("bold")}
                     title="Bold"
                   >
@@ -1040,7 +1075,7 @@ export function NoteEditor({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-10 w-10 sm:h-8 sm:w-8 p-0"
                     onClick={() => formatText("italic")}
                     title="Italic"
                   >
@@ -1049,7 +1084,7 @@ export function NoteEditor({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-10 w-10 sm:h-8 sm:w-8 p-0"
                     onClick={() => formatText("underline")}
                     title="Underline"
                   >
@@ -1059,7 +1094,7 @@ export function NoteEditor({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-10 w-10 sm:h-8 sm:w-8 p-0"
                     onClick={() => formatText("insertUnorderedList")}
                     title="Bullet List"
                   >
@@ -1068,7 +1103,7 @@ export function NoteEditor({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-10 w-10 sm:h-8 sm:w-8 p-0"
                     onClick={() => formatText("insertOrderedList")}
                     title="Numbered List"
                   >
@@ -1078,7 +1113,7 @@ export function NoteEditor({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-10 w-10 sm:h-8 sm:w-8 p-0"
                     onClick={insertQuote}
                     title="Quote"
                   >
@@ -1092,7 +1127,7 @@ export function NoteEditor({
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0"
+                        className="h-10 w-10 sm:h-8 sm:w-8 p-0"
                         title="Insert Code"
                       >
                         <Code className="h-4 w-4" />
@@ -1170,7 +1205,7 @@ export function NoteEditor({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-10 w-10 sm:h-8 sm:w-8 p-0"
                     onClick={() => {
                       const url = prompt("Enter URL:");
                       if (url) formatText("createLink", url);
@@ -1182,7 +1217,7 @@ export function NoteEditor({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-10 w-10 sm:h-8 sm:w-8 p-0"
                     onClick={handleImageInsert}
                     title="Insert Image"
                   >
@@ -1197,7 +1232,7 @@ export function NoteEditor({
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0"
+                        className="h-10 w-10 sm:h-8 sm:w-8 p-0"
                         onClick={handleHighlight}
                         title="Highlight Text"
                       >
@@ -1240,7 +1275,7 @@ export function NoteEditor({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-10 w-10 sm:h-8 sm:w-8 p-0"
                     title="Drawing Tool"
                     onClick={toggleDrawingMode}
                   >
@@ -1248,18 +1283,18 @@ export function NoteEditor({
                   </Button>
                 </div>
               </div>
-              <div className="min-h-[500px] p-4">
+              <div className="min-h-[320px] sm:min-h-[500px] p-3 sm:p-4">
                 <div
                   ref={editorRef}
                   contentEditable
-                  className="prose prose-sm max-w-none dark:prose-invert min-h-[400px] outline-none focus:outline-none ltr"
+                  className="prose prose-sm max-w-none dark:prose-invert min-h-[260px] sm:min-h-[400px] outline-none focus:outline-none ltr"
                   onInput={updateContentFromDOM}
                   onKeyDown={handleKeyDown}
                   onPaste={handlePaste}
                   onClick={() => editorRef.current?.focus()}
                   suppressContentEditableWarning={true}
                   style={{
-                    minHeight: "400px",
+                    minHeight: "260px",
                     direction: "ltr",
                     unicodeBidi: "normal",
                   }}
@@ -1269,8 +1304,8 @@ export function NoteEditor({
           </Card>
 
           {/* Quick Actions */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button
                 variant="outline"
                 size="sm"

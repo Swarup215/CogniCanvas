@@ -138,7 +138,7 @@ export function NotebookCard({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-red-500 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity h-8 sm:h-9 w-8 sm:w-9 p-0"
+                  className="text-red-500 hover:text-red-600 h-8 sm:h-9 w-8 sm:w-9 p-0 sm:opacity-0 sm:group-hover:opacity-100"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
