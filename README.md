@@ -60,6 +60,10 @@ This scaffold provides a robust foundation built with:
 # Install dependencies
 npm install
 
+# Set up environment variables
+# Create a .env.local file in the root directory with:
+GROQ_API_KEY=your_groq_api_key_here
+
 # Start development server
 npm run dev
 
@@ -71,6 +75,21 @@ npm start
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to see your application running.
+
+## 🤖 AI Chatbot Setup
+
+This application includes an AI-powered chatbot that works for all users without requiring individual API keys.
+
+### For Development:
+1. Get your Groq API key from [console.groq.com](https://console.groq.com/)
+2. Create a `.env.local` file in the project root
+3. Add: `GROQ_API_KEY=your_api_key_here`
+4. Restart the development server
+
+### For Production:
+- Set the `GROQ_API_KEY` environment variable in your hosting platform (Vercel, Railway, etc.)
+- The chatbot will work for all users automatically
+- The API key stays secure on the server and is never exposed to clients
 
 ## 🤖 Powered by Z.ai
 
