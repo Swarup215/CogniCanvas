@@ -246,24 +246,24 @@ export default function Home() {
             onBack={handleBackToSubject}
           />
         ) : (
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
             <a href="#main-content" className="skip-link">
               Skip to main content
             </a>
-            <div className="container mx-auto px-4 py-4 sm:py-8">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8 animate-fade-in">
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 responsive-heading">
+            <div className="container mx-auto px-4 py-6 sm:py-10">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 sm:mb-10 animate-fade-in">
+                <div className="space-y-1">
+                  <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent responsive-heading">
                     CogniCanvas
                   </h1>
-                  <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-1 responsive-text">
+                  <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 font-medium responsive-text">
                     Your digital knowledge canvas
                   </p>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
                   <Button
                     onClick={() => setIsAddSubjectOpen(true)}
-                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 focus-ring text-sm sm:text-base flex-1 sm:flex-none"
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 focus-ring text-sm sm:text-base flex-1 sm:flex-none shadow-lg hover:shadow-xl transition-all"
                   >
                     <Plus className="h-4 w-4 mr-1 sm:mr-2" />
                     <span className="hidden sm:inline">Add Subject</span>
@@ -274,11 +274,11 @@ export default function Home() {
 
               <div
                 id="main-content"
-                className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8 animate-slide-up"
+                className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 animate-slide-up"
               >
                 <div className="lg:col-span-2">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                    <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-slate-100 responsive-heading">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 responsive-heading">
                       Your Subjects
                     </h2>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -315,20 +315,20 @@ export default function Home() {
                   </div>
 
                   {subjects.length === 0 ? (
-                    <Card className="border-dashed border-2 border-slate-300 dark:border-slate-600 animate-fade-in">
-                      <CardContent className="flex flex-col items-center justify-center py-12">
-                        <BookOpen className="h-12 w-12 text-slate-400 mb-4" />
-                        <h3 className="text-lg font-medium text-slate-600 dark:text-slate-400 mb-2">
+                    <Card className="border-dashed border-2 border-slate-300 dark:border-slate-600 animate-fade-in bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900">
+                      <CardContent className="flex flex-col items-center justify-center py-16">
+                        <div className="p-4 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-2xl mb-6">
+                          <BookOpen className="h-16 w-16 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-700 dark:text-slate-300 mb-2">
                           No subjects yet
                         </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-500 text-center mb-4">
-                          Create your first subject to start organizing your
-                          notes
+                        <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-6 max-w-md">
+                          Create your first subject to start organizing your knowledge and notes
                         </p>
                         <Button
                           onClick={() => setIsAddSubjectOpen(true)}
-                          variant="outline"
-                          className="focus-ring"
+                          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all focus-ring"
                         >
                           <Plus className="h-4 w-4 mr-2" />
                           Create Subject
@@ -350,13 +350,15 @@ export default function Home() {
                 </div>
 
                 <div className="lg:col-span-1">
-                  <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 sm:p-6 animate-slide-up">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />
-                      <h3 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100">
+                  <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-5 sm:p-6 animate-slide-up hover:shadow-xl transition-shadow">
+                    <div className="flex items-center gap-2.5 mb-5">
+                      <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                        <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100">
                         Important Snippets
                       </h3>
-                      <Badge variant="secondary" className="text-xs sm:text-sm">
+                      <Badge variant="secondary" className="text-xs sm:text-sm ml-auto">
                         {importantSnippets.length}
                       </Badge>
                     </div>
