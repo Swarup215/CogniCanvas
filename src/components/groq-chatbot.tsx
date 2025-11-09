@@ -155,6 +155,10 @@ export function GroqChatbot({ open, onOpenChange }: GroqChatbotProps) {
 
 
   const sendToGroq = async (message: string): Promise<string> => {
+    if (!GROQ_API_KEY) {
+      throw new Error("Groq API key is not configured. Please set NEXT_PUBLIC_GROQ_API_KEY in your .env.local file.");
+    }
+
     const body = {
       model: GROQ_MODEL,
       messages: [{ role: "user", content: message }],
