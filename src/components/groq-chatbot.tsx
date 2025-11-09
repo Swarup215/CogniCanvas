@@ -8,15 +8,8 @@ import { MessageCircle, Send, X, Bot, User, Sparkles, Copy, Check } from "lucide
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-// Groq API Configuration
-const GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY || "";
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-const GROQ_MODEL = "llama-3.3-70b-versatile";
-
-// Debug: Log if API key is available (only in development)
-if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
-  console.log("Groq API Key configured:", GROQ_API_KEY ? "Yes" : "No");
-}
+// Chat API endpoint - calls server-side API route
+const CHAT_API_URL = "/api/chat";
 
 interface Message {
   id: string;
@@ -160,46 +153,21 @@ export function GroqChatbot({ open, onOpenChange }: GroqChatbotProps) {
 
 
   const sendToGroq = async (message: string): Promise<string> => {
-    if (!GROQ_API_KEY) {
-      throw new Error("Groq API key is not configured. Please set NEXT_PUBLIC_GROQ_API_KEY in your .env.local file.");
-    }
-
-    const body = {
-      model: GROQ_MODEL,
-      messages: [{ role: "user", content: message }],
-    };
-
-    const res = await fetch(GROQ_API_URL, {
+    const res = await fetch(CHAT_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${GROQ_API_KEY}`,
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ message }),
     });
 
     if (!res.ok) {
-      const txt = await res.text();
-      throw new Error(`API error ${res.status}: ${txt}`);
+      const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
+      throw new Error(errorData.error || `API error ${res.status}`);
     }
 
     const data = await res.json();
-
-    // Handle OpenAI-compatible response format
-    if (data.choices && data.choices[0]?.message?.content) {
-      return data.choices[0].message.content;
-    }
-
-    // Fallback for other response formats
-    if (data.output) {
-      return Array.isArray(data.output) ? data.output.join("\n") : String(data.output);
-    }
-
-    if (data.completions && data.completions[0]?.data?.text) {
-      return data.completions[0].data.text;
-    }
-
-    return JSON.stringify(data);
+    return data.content || "No response from server";
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -31,13 +31,13 @@ if (require("fs").existsSync(envPathFallback)) {
 
 // Debug: Log if API key is loaded (only in development)
 if (process.env.NODE_ENV !== "production") {
-  console.log("Groq API Key loaded:", process.env.NEXT_PUBLIC_GROQ_API_KEY ? "Yes" : "No");
-  if (process.env.NEXT_PUBLIC_GROQ_API_KEY) {
-    console.log("API Key length:", process.env.NEXT_PUBLIC_GROQ_API_KEY.length);
-    console.log("API Key starts with:", process.env.NEXT_PUBLIC_GROQ_API_KEY.substring(0, 10));
+  const apiKey = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY;
+  console.log("Groq API Key loaded:", apiKey ? "Yes" : "No");
+  if (apiKey) {
+    console.log("API Key length:", apiKey.length);
+    console.log("API Key starts with:", apiKey.substring(0, 10));
   } else {
-    console.log("All env vars starting with NEXT_PUBLIC_:", 
-      Object.keys(process.env).filter(key => key.startsWith("NEXT_PUBLIC_")));
+    console.log("⚠️  Warning: No Groq API key found. Set GROQ_API_KEY or NEXT_PUBLIC_GROQ_API_KEY in .env.local");
   }
 }
 
