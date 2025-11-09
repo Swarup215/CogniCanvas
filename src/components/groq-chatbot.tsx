@@ -13,6 +13,11 @@ const GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY || "";
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_MODEL = "llama-3.3-70b-versatile";
 
+// Debug: Log if API key is available (only in development)
+if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+  console.log("Groq API Key configured:", GROQ_API_KEY ? "Yes" : "No");
+}
+
 interface Message {
   id: string;
   role: "user" | "bot";

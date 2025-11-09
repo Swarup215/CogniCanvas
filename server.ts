@@ -3,6 +3,43 @@ import { setupSocket } from "@/lib/socket";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import next from "next";
+import { config } from "dotenv";
+import { resolve } from "path";
+
+// Load environment variables from .env.local
+// Load .env.local first, then .env as fallback
+const envPath = resolve(process.cwd(), ".env.local");
+const envPathFallback = resolve(process.cwd(), ".env");
+
+console.log("Loading .env.local from:", envPath);
+console.log("File exists:", require("fs").existsSync(envPath));
+
+// Load .env.local with override to ensure it takes precedence
+const result = config({ path: envPath, override: true });
+if (result.error) {
+  console.error("Error loading .env.local:", result.error);
+  // Try loading .env as fallback
+  config({ path: envPathFallback });
+} else {
+  console.log("Successfully loaded .env.local");
+}
+
+// Also load .env if it exists (without override so .env.local takes precedence)
+if (require("fs").existsSync(envPathFallback)) {
+  config({ path: envPathFallback, override: false });
+}
+
+// Debug: Log if API key is loaded (only in development)
+if (process.env.NODE_ENV !== "production") {
+  console.log("Groq API Key loaded:", process.env.NEXT_PUBLIC_GROQ_API_KEY ? "Yes" : "No");
+  if (process.env.NEXT_PUBLIC_GROQ_API_KEY) {
+    console.log("API Key length:", process.env.NEXT_PUBLIC_GROQ_API_KEY.length);
+    console.log("API Key starts with:", process.env.NEXT_PUBLIC_GROQ_API_KEY.substring(0, 10));
+  } else {
+    console.log("All env vars starting with NEXT_PUBLIC_:", 
+      Object.keys(process.env).filter(key => key.startsWith("NEXT_PUBLIC_")));
+  }
+}
 
 const dev = process.env.NODE_ENV !== "production";
 const currentPort = parseInt(process.env.PORT || '3000', 10);
